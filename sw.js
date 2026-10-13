@@ -16,6 +16,7 @@ self.addEventListener('fetch', e => {
   const r = e.request; if (r.method !== 'GET') return;
   const u = new URL(r.url);
   if (/version\.json$/.test(u.pathname)) return;
+  if (u.hostname === 'static.cloudflareinsights.com') return; // suivi Cloudflare : toujours le réseau, jamais le cache
   // la page : réseau d'abord (mises à jour immédiates), cache si hors ligne
   if (r.mode === 'navigate') {
     e.respondWith(fetch(r.url, { cache: 'no-cache', credentials: 'same-origin' }).then(res => { const cp = res.clone(); caches.open(V).then(c => c.put('index.html', cp)); return res; }).catch(() => caches.match('index.html')));
