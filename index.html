@@ -282,6 +282,8 @@ h2{margin:6px 0 2px;font-family:var(--display);font-weight:400;font-size:20px;co
 .coach.lit{background:transparent}
 .coach .spot{position:absolute;display:none;border-radius:10px;border:2px solid var(--laiton);box-shadow:0 0 0 9999px rgba(8,4,2,.62),0 0 18px 4px rgba(224,160,64,.55);transition:left .25s,top .25s,width .25s,height .25s;animation:spot 1.4s ease-in-out infinite}
 .coach.lit .spot{display:block}
+.coach.snap .spot{transition:none}
+.coach.wait .spot{opacity:0}
 @keyframes spot{50%{box-shadow:0 0 0 9999px rgba(8,4,2,.62),0 0 26px 8px rgba(224,160,64,.8)}}
 .coach .cbox{position:absolute;left:14px;right:14px;bottom:26px;border-radius:12px;padding:14px 16px 12px 92px;min-height:96px;border:2px solid var(--laiton2);box-shadow:0 0 0 3px #2b1b12,0 0 0 5px var(--laiton3),0 12px 30px rgba(0,0,0,.6)}
 .coach.top .cbox{bottom:auto;top:70px}
@@ -787,7 +789,7 @@ const TEXTES = {
       { at: '.acts', t: 'Glisse la carte à droite, ou touche le bouton vert, pour le faire entrer. À gauche, il repart.' },
       { at: '.qinfo', t: 'Ne traîne pas : la file s’impatiente. Quand elle n’en peut plus, elle s’en va et la porte ferme.' },
     ],
-    arme: [{ at: '#card .chips', t: 'Une épée, badge rouge : elle enfreint une règle du soir. Ce soir, c’est non.' }],
+    arme: [{ at: '#card .chip.bad', t: 'Une épée, badge rouge : elle enfreint une règle du soir. Ce soir, c’est non.' }],
     salle: [
       { at: '#grid', t: 'Ceux que tu as fait entrer. Sous chacun : sa bourse et ses verres. Trois verres au plus.' },
       { at: '.drinks', t: 'Glisse une boisson sur un client : il paie, et sa stat monte. Sers-lui ce qu’il demande, il laisse un pourboire.' },
@@ -926,7 +928,7 @@ const TEXTES_EN = {
       { at: '.acts', t: 'Swipe the card right, or tap the green button, to let them in. Left, and they leave.' },
       { at: '.qinfo', t: 'Don’t dawdle: the line gets impatient. When it’s had enough, it leaves and the door closes.' },
     ],
-    arme: [{ at: '#card .chips', t: 'A sword, red badge: it breaks one of tonight’s rules. Tonight, that’s a no.' }],
+    arme: [{ at: '#card .chip.bad', t: 'A sword, red badge: it breaks one of tonight’s rules. Tonight, that’s a no.' }],
     salle: [
       { at: '#grid', t: 'The people you let in. Under each one: their purse and their drinks. Three drinks at most.' },
       { at: '.drinks', t: 'Drag a drink onto a customer: they pay, and their stat goes up. Serve what they ask for and they leave a tip.' },
@@ -1803,19 +1805,30 @@ function showTuto(key, after) {
     <div class="who">Gustave<span class="cnt"></span></div><p></p><span class="ok"></span></div>`;
   app.appendChild(o);
   let i = 0, armed = false;
+  // Le cadre suit sa cible pendant ~0,8 s : la carte qui arrive à la porte est encore en mouvement quand Gustave parle.
+  let follow = 0;
+  const place = () => {
+    const st = steps[i], tgt = st.at && $(st.at), spot = $('.spot', o);
+    if (!tgt) { o.classList.remove('lit', 'top'); return; }
+    const a = app.getBoundingClientRect(), r = tgt.getBoundingClientRect(), k = G.scale || 1;
+    const x = Math.max(4, (r.left - a.left) / k - 6), y = Math.max(4, (r.top - a.top) / k - 6);
+    const w = Math.min(382 - x, r.width / k + 12), h = Math.min(836 - y, r.height / k + 12);
+    Object.assign(spot.style, { left: x + 'px', top: y + 'px', width: w + 'px', height: h + 'px' });
+    o.classList.add('lit'); o.classList.toggle('top', y + h / 2 > 470);
+  };
   const show = () => {
-    const st = steps[i], tgt = st.at && $(st.at), spot = $('.spot', o), box = $('.cbox', o);
+    const st = steps[i], tgt = st.at && $(st.at), box = $('.cbox', o);
     $('p', o).textContent = nbsp(st.t);
     $('.cnt', o).textContent = steps.length > 1 ? `${i + 1} / ${steps.length}` : '';
     $('.ok', o).textContent = i < steps.length - 1 ? T('Touche l’écran pour la suite', 'Tap the screen for more') : T('Touche l’écran pour continuer', 'Tap the screen to continue');
-    if (tgt) {
-      tgt.scrollIntoView({ block: 'nearest' });
-      const a = app.getBoundingClientRect(), r = tgt.getBoundingClientRect(), k = G.scale || 1;
-      const x = Math.max(4, (r.left - a.left) / k - 6), y = Math.max(4, (r.top - a.top) / k - 6);
-      const w = Math.min(382 - x, r.width / k + 12), h = Math.min(836 - y, r.height / k + 12);
-      Object.assign(spot.style, { left: x + 'px', top: y + 'px', width: w + 'px', height: h + 'px' });
-      o.classList.add('lit'); o.classList.toggle('top', y + h / 2 > 470);
-    } else { o.classList.remove('lit', 'top'); }
+    if (tgt) tgt.scrollIntoView({ block: 'nearest' });
+    if (i === 0) o.classList.add('snap'); place(); void o.offsetWidth; o.classList.remove('snap');
+    // cible encore en mouvement (carte qui arrive) : le cadre attend qu'elle se pose
+    const moving = tgt && document.getAnimations ? document.getAnimations().filter(an => an.playState === 'running' && an.effect && an.effect.target && an.effect.target.contains && an.effect.target.contains(tgt)) : [];
+    if (moving.length) { o.classList.add('wait'); Promise.all(moving.map(an => an.finished.catch(() => {}))).then(() => { o.classList.add('snap'); place(); void o.offsetWidth; o.classList.remove('snap', 'wait'); }); }
+    const t0 = performance.now(), id = ++follow;
+    const loop = () => { if (id !== follow || !o.isConnected) return; place(); if (performance.now() - t0 < 800) requestAnimationFrame(loop); };
+    requestAnimationFrame(loop);
     box.classList.remove('pop'); void box.offsetWidth; box.classList.add('pop');
   };
   show();
@@ -2917,7 +2930,7 @@ else { if (DEBUG) setupDebug(); screenTitle(); }
 
 /* ------------------------- INSTALLATION, HORS LIGNE ------------------------ */
 // BUILD_ID est remplacé à chaque publication ; 'dev' sur l'artefact et en local.
-const BUILD_ID = '53e801b453';
+const BUILD_ID = 'f19f35fe1a';
 // Installable par le menu du navigateur, sans invite ni bouton : l'appli à installer, c'est le hub Keismey Studio.
 addEventListener('beforeinstallprompt', e => e.preventDefault());
 try {
