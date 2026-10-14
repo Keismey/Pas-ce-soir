@@ -12,6 +12,7 @@ Un jeu Keismey Studio. Game design : Claude. Développement : Claude Opus 5.5. I
 
 - Une seule page (`index.html`), sans dépendance ni étape de build côté navigateur.
 - `sw.js` : jeu jouable hors ligne. `version.json` : le jeu se met à jour seul à la publication suivante.
+- Polices Alegreya et Pirata One hébergées dans `fonts/` (licence SIL OFL, voir `fonts/OFL-*.txt`) : aucune requête vers un service de polices externe.
 - Sauvegarde dans le navigateur (`localStorage`, clé `pas-ce-soir-v1`).
 - Français et anglais : `?lang=fr` ou `?lang=en` (le choix est retenu), sinon la langue du navigateur.
 - Musique : 14 airs en boucle, regroupés par moment de jeu (titre, entre deux soirées, porte, salle, soirées spéciales, mode patron).
