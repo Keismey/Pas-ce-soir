@@ -1623,8 +1623,10 @@ const $$ = (sel, root = document) => Array.from(root.querySelectorAll(sel));
 const app = $('#app'), scr = $('#screen');
 const params = new URLSearchParams(location.search);
 // Panneau de test visible sur l'artefact. Pour le déploiement GitHub : passer DEBUG_BUILD à false.
+// En ligne (github.io), ni ?debug ni ?test : le joueur ne peut pas ouvrir le panneau de test.
+const ONLINE = /(^|\.)github\.io$/.test(location.hostname);
 const DEBUG_BUILD = false;
-const DEBUG = DEBUG_BUILD || params.has('debug');
+const DEBUG = DEBUG_BUILD || (params.has('debug') && !ONLINE);
 const G = { meta: null, n: null, rng: null, scale: 1, ui: {}, timers: [] };
 const SAVE_KEY = 'pas-ce-soir-v1';
 
@@ -2923,12 +2925,12 @@ function runTests() {
 
 /* ------------------------------ DÉMARRAGE ----------------------------- */
 window.PCS = { startPatron, patronFile, fraisDuSoir, STORY, STORY_END, knownRules, chapterBefore, makeVeteran, recordVeteran, availableDrinks, nightPlan, chooseConsigne, chooseBonus, canRachat, buyUpgrade, sayLine, serieTip, startService, UPGRADES, P, DRINKS, QUESTS, makeRng, newMeta, newNight, genQueue, decide, serve, assign, registerAction, closeIncidents, computeBilan, chance, eligible, stat, teamOf, questOf, visibleFaults, mercsInSalle, canServe, G };
-if (params.has('test')) runTests();
+if (params.has('test') && !ONLINE) runTests();
 else { if (DEBUG) setupDebug(); screenTitle(); }
 
 /* ------------------------- INSTALLATION, HORS LIGNE ------------------------ */
 // BUILD_ID est remplacé à chaque publication ; 'dev' sur l'artefact et en local.
-const BUILD_ID = 'f19f35fe1a';
+const BUILD_ID = 'bd721da619';
 // Installable par le menu du navigateur, sans invite ni bouton : l'appli à installer, c'est le hub Keismey Studio.
 addEventListener('beforeinstallprompt', e => e.preventDefault());
 try {
