@@ -2039,8 +2039,8 @@ function confirmBox(text, yes, fn) {
 /* ---------- Notes de mise à jour (la plus récente en premier) ---------- */
 const PN = [
   { v: '1.0.2', d: ['19 octobre 2026', '19 October 2026'],
-    fr: ['Le bouton retour du téléphone ne quitte plus le jeu d\'un coup : il ferme les fenêtres, puis propose de revenir à l\'écran titre (en prévenant si la soirée en cours sera perdue). Depuis l\'écran titre, il ramène au hub Keismey Studio.'],
-    en: ['The phone\'s back button no longer leaves the game at once: it closes windows, then offers to go back to the title screen (warning you if tonight\'s shift will be lost). From the title screen, it takes you to the Keismey Studio hub.'] },
+    fr: ['Le bouton retour du téléphone ne quitte plus le jeu d\'un coup : il ferme les fenêtres, puis propose de revenir à l\'écran titre (en prévenant si la soirée en cours sera perdue). Depuis l\'écran titre, il propose d\'aller au hub Keismey Studio.'],
+    en: ['The phone\'s back button no longer leaves the game at once: it closes windows, then offers to go back to the title screen (warning you if tonight\'s shift will be lost). From the title screen, it offers to go to the Keismey Studio hub.'] },
   { v: '1.0.1', d: ['16 octobre 2026', '16 October 2026'],
     fr: ['Nouveau : ces notes de mise à jour, accessibles depuis l\'écran titre.', 'Les polices sont maintenant fournies avec le jeu : affichage plus rapide et identique hors ligne.', 'Tutoriel : le cadre d\'aide attend que la carte soit posée avant d\'apparaître.'],
     en: ['New: these patch notes, available from the title screen.', 'Fonts now ship with the game: faster display, identical offline.', 'Tutorial: the help frame now waits for the card to land before appearing.'] },
@@ -2972,12 +2972,12 @@ function runTests() {
 
 /* ---------- Bouton retour du téléphone (voir ks-back.js) ----------
    fenêtre ouverte → fermée ; soirée en cours → écran titre (confirmé, la soirée est perdue) ;
-   autres écrans → écran titre (confirmé) ; écran titre → hub. Le tutoriel et les incidents gardent la main. */
-function backConfirm(text, fn) {
+   autres écrans → écran titre (confirmé) ; écran titre → hub (confirmé). Le tutoriel et les incidents gardent la main. */
+function backConfirm(text, fn, yes) {
   const was = G.ui.paused; G.ui.paused = true;
   const o = document.createElement('div'); o.className = 'ov';
   o.innerHTML = `<div class="box parch fade-in" style="text-align:center"><div style="font-size:18px;margin-bottom:16px">${esc(text)}</div>
-    <div style="display:flex;gap:10px"><button class="btn" id="cno" style="flex:1">${T('Annuler', 'Cancel')}</button><button class="btn danger" id="cyes" style="flex:1">${T('Écran titre', 'Title screen')}</button></div></div>`;
+    <div style="display:flex;gap:10px"><button class="btn" id="cno" style="flex:1">${T('Annuler', 'Cancel')}</button><button class="btn danger" id="cyes" style="flex:1">${yes || T('Écran titre', 'Title screen')}</button></div></div>`;
   app.appendChild(o);
   $('#cno', o).onclick = () => { o.remove(); G.ui.paused = was; };
   $('#cyes', o).onclick = () => { o.remove(); G.ui.paused = false; $$('.ov,.coach').forEach(x => x.remove()); fn(); };
@@ -2990,7 +2990,7 @@ function onBack() {
     return;
   }
   if ($('.coach')) return;
-  if (!G.cur || G.cur === 'titre') return 'hub';
+  if (!G.cur || G.cur === 'titre') { backConfirm(T('Quitter Pas ce soir ? Ta partie est enregistrée.', 'Leave Pas ce soir? Your game is saved.'), () => KSBack.toHub(), T('Aller au hub', 'Go to the hub')); return; }
   const night = ['porte', 'salle', 'service'].includes(G.cur);
   backConfirm(night ? T('Retour à l’écran titre ? La soirée en cours sera perdue.', 'Back to the title screen? Tonight’s shift will be lost.')
                     : T('Retour à l’écran titre ?', 'Back to the title screen?'), screenTitle);
@@ -3004,7 +3004,7 @@ else { if (DEBUG) setupDebug(); screenTitle(); }
 
 /* ------------------------- INSTALLATION, HORS LIGNE ------------------------ */
 // BUILD_ID est remplacé à chaque publication ; 'dev' sur l'artefact et en local.
-const BUILD_ID = 'ab0f339e72';
+const BUILD_ID = '2cb213165a';
 // Installable par le menu du navigateur, sans invite ni bouton : l'appli à installer, c'est le hub Keismey Studio.
 addEventListener('beforeinstallprompt', e => e.preventDefault());
 try {
