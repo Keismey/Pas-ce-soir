@@ -386,6 +386,7 @@ h2{margin:6px 0 2px;font-family:var(--display);font-weight:400;font-size:20px;co
 .opts .tg{all:unset;cursor:pointer;width:52px;height:30px;border-radius:15px;background:#b9a27a;position:relative;transition:background .15s}
 .opts .tg::after{content:'';position:absolute;top:3px;left:3px;width:24px;height:24px;border-radius:50%;background:#fff8ea;box-shadow:0 1px 3px rgba(0,0,0,.4);transition:left .15s}
 .opts .tg.on{background:var(--sauge2)} .opts .tg.on::after{left:25px}
+.opts input[type=range]{flex:1;max-width:60%;accent-color:#7a8f5a;height:28px} .opts .over{text-align:center;font-size:12px;opacity:.6;margin-top:12px}
 .regles{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
 .rg{all:unset;box-sizing:border-box;cursor:pointer;min-height:84px;border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;padding:6px 4px;
   text-align:center;font-size:13.5px;line-height:1.1;color:var(--txt2);background:rgba(18,10,6,.6);border:1px solid rgba(224,160,64,.3);transition:transform .08s}
@@ -419,7 +420,6 @@ h2{margin:6px 0 2px;font-family:var(--display);font-weight:400;font-size:20px;co
 .lnk{all:unset;cursor:pointer;font-family:var(--display);font-size:20px;color:var(--parchemin);opacity:.85;padding:8px 16px;text-shadow:0 2px 5px #000}
 .lnk.lg{font-family:var(--body);font-size:14px;opacity:.7;padding:4px 12px}
 .lnk:active{opacity:.6} .lnk:focus-visible{outline:2px solid var(--laiton);outline-offset:2px;border-radius:6px}
-.titre.home .studio .pnl{font-family:inherit;font-size:12px;padding:6px 10px;color:var(--txt3);text-decoration:underline}
 .titre.home .studio{margin-top:12px;font-size:12px;color:var(--txt3);text-shadow:0 1px 3px #000}
 .snow{position:absolute;inset:0;pointer-events:none;opacity:.7;
   background-image:radial-gradient(1.6px 1.6px at 20px 30px,#fff 50%,transparent 51%),radial-gradient(1.2px 1.2px at 120px 90px,#fff 50%,transparent 51%),radial-gradient(1.8px 1.8px at 70px 160px,#fff 50%,transparent 51%),
@@ -491,6 +491,7 @@ h2{margin:6px 0 2px;font-family:var(--display);font-weight:400;font-size:20px;co
 </head>
 <body>
 <div id="app"><div id="screen"></div></div>
+<script src="ks-studio.js"></script>
 <script src="ks-back.js"></script>
 <script>
 'use strict';
@@ -1776,18 +1777,32 @@ function hud() {
 }
 function showOptions() {
   const o = document.createElement('div'); o.className = 'ov';
+  const titre = !G.cur || G.cur === 'titre';
   const row = (id, label, on) => `<div class="row"><span>${label}</span><button class="tg ${on ? 'on' : ''}" id="${id}" aria-pressed="${on}" aria-label="${label}"></button></div>`;
+  const vol = (id, label, v) => `<div class="row"><span>${label}</span><input type="range" id="${id}" min="0" max="100" step="5" value="${Math.round(v * 100)}" aria-label="${label}"></div>`;
+  const b = (id, label) => `<button class="btn" id="${id}" style="width:100%;margin-top:8px">${label}</button>`;
   o.innerHTML = `<div class="box parch fade-in opts"><div class="nm" style="margin-bottom:6px">Options</div>
-    ${row('o-son', T('Son et musique', 'Sound and music'), !AUDIO.muted)}${row('o-vib', T('Vibrations', 'Vibration'), OPTS.vib)}
-    <div style="display:flex;gap:10px;margin-top:16px"><button class="btn" id="o-titre" style="flex:1">${T('Écran titre', 'Title screen')}</button><button class="btn primary" id="o-ok" style="flex:1">${T('Reprendre', 'Resume')}</button></div></div>`;
+    ${vol('o-mus', T('Musique', 'Music'), VOL.m)}${vol('o-sfx', T('Bruitages', 'Sound effects'), VOL.s)}${row('o-vib', T('Vibrations', 'Vibration'), OPTS.vib)}
+    ${titre ? `<div class="row"><span>${T('Langue', 'Language')}</span><button class="btn" id="o-lang" style="padding:6px 12px">${EN ? 'Français' : 'English'}</button></div>` : ''}
+    ${b('o-pn', T('Notes de mise à jour', 'Patch notes'))}${b('o-save', T('Sauvegarde (exporter / importer)', 'Save (export / import)'))}
+    ${b('o-bug', T('Signaler un bug', 'Report a bug'))}${b('o-sup', T('Soutenir le studio', 'Support the studio'))}
+    <div style="display:flex;gap:10px;margin-top:16px">${titre ? '' : `<button class="btn" id="o-titre" style="flex:1">${T('Écran titre', 'Title screen')}</button>`}<button class="btn primary" id="o-ok" style="flex:1">${titre ? T('Fermer', 'Close') : T('Reprendre', 'Resume')}</button></div>
+    <div class="over">v${PN[0].v} · Keismey Studio</div></div>`;
   app.appendChild(o); G.ui.paused = true;
   const close = () => { o.remove(); G.ui.paused = false; };
-  $('#o-son', o).onclick = e => { AUDIO.muted = !AUDIO.muted; try { localStorage.setItem('pas-ce-soir-muet', AUDIO.muted ? '1' : '0'); } catch (err) { /* stockage indisponible */ }
-    if (AUDIO.master) AUDIO.master.gain.value = AUDIO.muted ? 0 : 1; e.currentTarget.classList.toggle('on', !AUDIO.muted); };
+  const setVol = (k, v) => { VOL[k] = v; volApply(); try { localStorage.setItem('pas-ce-soir-vol', JSON.stringify(VOL)); } catch (err) { /* stockage indisponible */ } };
+  $('#o-mus', o).oninput = e => setVol('m', e.target.value / 100);
+  $('#o-sfx', o).oninput = e => setVol('s', e.target.value / 100);
+  $('#o-sfx', o).onchange = () => sfx('bouton');
   $('#o-vib', o).onclick = e => { OPTS.vib = !OPTS.vib; try { localStorage.setItem('pas-ce-soir-vib', OPTS.vib ? '1' : '0'); } catch (err) { /* stockage indisponible */ }
     e.currentTarget.classList.toggle('on', OPTS.vib); buzz(20); };
+  const lg = $('#o-lang', o); if (lg) lg.onclick = () => { const u = new URL(location.href); u.searchParams.set('lang', EN ? 'fr' : 'en'); location.replace(u.toString()); };
+  $('#o-pn', o).onclick = () => pnShow();
+  $('#o-save', o).onclick = () => { if (window.KS) KS.saveDialog({ keys: [SAVE_KEY], lang: EN ? 'en' : 'fr', accent: '#c8a45a' }); };
+  $('#o-bug', o).onclick = () => { if (window.KS) KS.bug('Pas ce soir', EN ? 'en' : 'fr'); };
+  $('#o-sup', o).onclick = () => { if (window.KS) KS.support(); };
   $('#o-ok', o).onclick = close;
-  $('#o-titre', o).onclick = () => { close(); $$('.ov,.coach').forEach(x => x.remove()); screenTitle(); };
+  const ti = $('#o-titre', o); if (ti) ti.onclick = () => { close(); $$('.ov,.coach').forEach(x => x.remove()); screenTitle(); };
 }
 function popDelta(id, v) {
   if (!v) return;
@@ -1860,7 +1875,14 @@ function showTuto(key, after) {
 
 /* ------------------------------- AUDIO -------------------------------- */
 const AUDIO = { ctx: null, muted: false, raw: {}, fail: {}, buffers: new Map(), cur: null, curName: null, want: null, pos: {} };
-try { AUDIO.muted = localStorage.getItem('pas-ce-soir-muet') === '1'; } catch (e) { /* stockage indisponible */ }
+/* volumes réglés dans les Options (0 à 1) ; l'ancien interrupteur « son coupé » devient deux volumes à 0 */
+const VOL = { m: 1, s: 1 };
+try {
+  const v = JSON.parse(localStorage.getItem('pas-ce-soir-vol') || 'null');
+  if (v) { VOL.m = +v.m; VOL.s = +v.s; } else if (localStorage.getItem('pas-ce-soir-muet') === '1') { VOL.m = 0; VOL.s = 0; localStorage.setItem('pas-ce-soir-vol', JSON.stringify(VOL)); }
+  localStorage.removeItem('pas-ce-soir-muet');
+} catch (e) { /* stockage indisponible */ }
+function volApply() { if (AUDIO.music) AUDIO.music.gain.value = P.audio.music * VOL.m; if (AUDIO.sfx) AUDIO.sfx.gain.value = P.audio.sfx * VOL.s; }
 /* Musique : peu de morceaux, longs, regroupés par moment de jeu pour ne pas changer d'air à chaque écran.
    Entre deux soirées (bilan, atelier, briefing), le morceau en cours continue ; il ne change qu'à la porte et en salle.
    Chaque morceau reprend là où il s'était arrêté. Chargement à la demande, 3 morceaux décodés au plus en mémoire. */
@@ -1873,8 +1895,8 @@ function audioInit() {
     let c; try { c = new C({ latencyHint: 'playback' }); } catch (e) { c = new C(); }
     AUDIO.ctx = c;
     AUDIO.master = c.createGain(); AUDIO.master.gain.value = AUDIO.muted ? 0 : 1; AUDIO.master.connect(c.destination);
-    AUDIO.music = c.createGain(); AUDIO.music.gain.value = P.audio.music; AUDIO.music.connect(AUDIO.master);
-    AUDIO.sfx = c.createGain(); AUDIO.sfx.gain.value = P.audio.sfx; AUDIO.sfx.connect(AUDIO.master);
+    AUDIO.music = c.createGain(); AUDIO.music.gain.value = P.audio.music * VOL.m; AUDIO.music.connect(AUDIO.master);
+    AUDIO.sfx = c.createGain(); AUDIO.sfx.gain.value = P.audio.sfx * VOL.s; AUDIO.sfx.connect(AUDIO.master);
     const nb = c.createBuffer(1, c.sampleRate, c.sampleRate), d = nb.getChannelData(0);
     for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
     AUDIO.noise = nb;
@@ -2005,12 +2027,7 @@ function sfx(name) { if (!AUDIO.ctx || AUDIO.muted || !SFX[name]) return; try { 
 document.addEventListener('click', e => {
   const t = e.target.closest ? e.target : null; if (!t) return;
   if (t.closest('#opts')) { showOptions(); return; }
-  if (t.closest('#mute')) {
-    AUDIO.muted = !AUDIO.muted;
-    try { localStorage.setItem('pas-ce-soir-muet', AUDIO.muted ? '1' : '0'); } catch (err) { /* stockage indisponible */ }
-    if (AUDIO.master) AUDIO.master.gain.value = AUDIO.muted ? 0 : 1;
-    $$('#mute').forEach(b => { b.innerHTML = AUDIO.muted ? ICON.muet : ICON.son; });
-  } else if (t.closest('.btn')) sfx('bouton');
+  if (t.closest('.btn')) sfx('bouton');
 });
 const rnd = arr => arr[Math.floor(Math.random() * arr.length)];
 function say(text, bad) {
@@ -2038,6 +2055,9 @@ function confirmBox(text, yes, fn) {
 }
 /* ---------- Notes de mise à jour (la plus récente en premier) ---------- */
 const PN = [
+  { v: '1.0.3', d: ['19 octobre 2026', '19 October 2026'],
+    fr: ['Options, aussi depuis l\'écran titre : volume de la musique et des bruitages, langue, notes de mise à jour, sauvegarde à exporter ou importer (pour changer d\'appareil), signalement de bug et soutien au studio.', 'Le navigateur est invité à garder ta sauvegarde même quand il fait du ménage.'],
+    en: ['Options, now also on the title screen: music and sound effects volume, language, patch notes, a save you can export or import (to switch devices), bug reports and studio support.', 'The browser is asked to keep your save even when it clears space.'] },
   { v: '1.0.2', d: ['19 octobre 2026', '19 October 2026'],
     fr: ['Le bouton retour du téléphone ne quitte plus le jeu d\'un coup : il ferme les fenêtres, puis propose de revenir à l\'écran titre (en prévenant si la soirée en cours sera perdue). Depuis l\'écran titre, il propose d\'aller au hub Keismey Studio.'],
     en: ['The phone\'s back button no longer leaves the game at once: it closes windows, then offers to go back to the title screen (warning you if tonight\'s shift will be lost). From the title screen, it offers to go to the Keismey Studio hub.'] },
@@ -2081,11 +2101,11 @@ function screenTitle() {
       <button class="btn primary big" id="${saved ? 'cont' : 'play'}"><span>${saved ? T('Continuer', 'Continue') : T('Jouer', 'Play')}</span><small>${esc(detail)}</small></button>
       ${fini ? `<button class="lnk" id="refin">${T('Revoir la fin', 'Watch the ending again')}</button>` : ''}
       ${saved ? `<button class="lnk" id="play">${T('Nouvelle partie', 'New game')}</button>` : ''}
-      <button class="lnk lg" id="lang" lang="${EN ? 'fr' : 'en'}">${EN ? 'Jouer en français' : 'Play in English'}</button>
+      <button class="lnk" id="topts">Options</button>
     </div>
-    <div class="studio"><button class="lnk pnl" id="pn">v${PN[0].v} · ${T('Notes de mise à jour', 'Patch notes')}</button><br>Keismey Studio</div>
+    <div class="studio">v${PN[0].v} · Keismey Studio</div>
   </div>`;
-  $('#pn').onclick = () => pnShow();
+  $('#topts').onclick = () => showOptions();
   pnAuto(!!saved);
   const nouvelle = () => { G.meta = newMeta((Math.random() * 2 ** 31) | 0); G.n = null; G.ui = {}; startNight(); };
   $('#play').onclick = () => saved ? confirmBox(T('Tout recommencer ? Ta partie en cours sera effacée.', 'Start over? Your current game will be erased.'), T('Recommencer', 'Start over'), nouvelle) : nouvelle();
@@ -2096,7 +2116,6 @@ function screenTitle() {
     if (canRachat(saved, saved.soiree - 1)) { G.meta.soiree--; screenPassation(); } else startNight();
   };
   const f = $('#refin'); if (f) f.onclick = () => screenFinale(0);
-  $('#lang').onclick = () => { const u = new URL(location.href); u.searchParams.set('lang', EN ? 'fr' : 'en'); location.replace(u.toString()); };
 }
 /* ----- Briefing ----- */
 function startNight(keepNight) {
@@ -3004,7 +3023,7 @@ else { if (DEBUG) setupDebug(); screenTitle(); }
 
 /* ------------------------- INSTALLATION, HORS LIGNE ------------------------ */
 // BUILD_ID est remplacé à chaque publication ; 'dev' sur l'artefact et en local.
-const BUILD_ID = '2cb213165a';
+const BUILD_ID = '5a160e34df';
 // Installable par le menu du navigateur, sans invite ni bouton : l'appli à installer, c'est le hub Keismey Studio.
 addEventListener('beforeinstallprompt', e => e.preventDefault());
 try {
