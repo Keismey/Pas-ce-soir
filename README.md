@@ -6,7 +6,7 @@ Rachète la taverne à Gustave, puis tiens-la en patron.
 Jouer : https://keismey.github.io/Pas-ce-soir/ (ou depuis le hub Keismey Studio : https://keismey.github.io/)
 Play in English: https://keismey.github.io/Pas-ce-soir/?lang=en
 
-Un jeu Keismey Studio. Game design : Claude. Développement : Claude Opus 5.5. Images et musiques : Gemini.
+Un jeu Keismey Studio. Conception et direction : Keismey. Développé avec l'aide d'outils IA.
 
 ## Technique
 
