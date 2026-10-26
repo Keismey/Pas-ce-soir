@@ -487,6 +487,11 @@ h2{margin:6px 0 2px;font-family:var(--display);font-weight:400;font-size:20px;co
 #tests{position:fixed;inset:0;overflow:auto;background:#111;color:#eee;padding:16px;font:13px/1.5 ui-monospace,monospace;z-index:3000;touch-action:auto;user-select:text}
 #tests .ok{color:#8fd18f} #tests .ko{color:#ff8a80}
 @media (prefers-reduced-motion: reduce){*{animation-duration:.01s!important;transition-duration:.01s!important}}
+/* logo Keismey Studio au lancement */
+.studio-splash{position:fixed;inset:0;z-index:9999;background:#000;display:grid;place-items:center;cursor:pointer;transition:opacity .6s ease}
+.studio-splash img{width:min(58vw,260px);height:auto;opacity:0;animation:studioIn 1s ease-out .15s forwards}
+.studio-splash.out{opacity:0;pointer-events:none}
+@keyframes studioIn{from{opacity:0;transform:scale(.96)}to{opacity:1;transform:none}}
 </style>
 </head>
 <body>
@@ -2055,6 +2060,9 @@ function confirmBox(text, yes, fn) {
 }
 /* ---------- Notes de mise à jour (la plus récente en premier) ---------- */
 const PN = [
+  { v: '1.0.4', d: ['26 octobre 2026', '26 October 2026'],
+    fr: ['Logo Keismey Studio au lancement, comme dans les autres jeux du studio.'],
+    en: ['Keismey Studio logo at launch, like the studio’s other games.'] },
   { v: '1.0.3', d: ['19 octobre 2026', '19 October 2026'],
     fr: ['Options, aussi depuis l\'écran titre : volume de la musique et des bruitages, langue, notes de mise à jour, sauvegarde à exporter ou importer (pour changer d\'appareil), signalement de bug et soutien au studio.', 'Le navigateur est invité à garder ta sauvegarde même quand il fait du ménage.'],
     en: ['Options, now also on the title screen: music and sound effects volume, language, patch notes, a save you can export or import (to switch devices), bug reports and studio support.', 'The browser is asked to keep your save even when it clears space.'] },
@@ -3019,11 +3027,25 @@ if (window.KSBack) KSBack.init({ back: onBack, lang: () => (EN ? 'en' : 'fr') })
 /* ------------------------------ DÉMARRAGE ----------------------------- */
 window.PCS = { startPatron, patronFile, fraisDuSoir, STORY, STORY_END, knownRules, chapterBefore, makeVeteran, recordVeteran, availableDrinks, nightPlan, chooseConsigne, chooseBonus, canRachat, buyUpgrade, sayLine, serieTip, startService, UPGRADES, P, DRINKS, QUESTS, makeRng, newMeta, newNight, genQueue, decide, serve, assign, registerAction, closeIncidents, computeBilan, chance, eligible, stat, teamOf, questOf, visibleFaults, mercsInSalle, canServe, G };
 if (params.has('test') && !ONLINE) runTests();
-else { if (DEBUG) setupDebug(); screenTitle(); }
+else { if (DEBUG) setupDebug(); studioSplash(); screenTitle(); }
+
+// Logo Keismey Studio au lancement, avant l'écran titre (toucher pour passer), comme les autres jeux du studio
+function studioSplash() {
+  const d = document.createElement('div');
+  d.className = 'studio-splash';
+  d.innerHTML = '<img src="img/studio/keismey-studio.webp" alt="Keismey Studio" draggable="false">';
+  document.body.appendChild(d);
+  let gone = false;
+  const end = () => { if (gone) return; gone = true; d.classList.add('out'); setTimeout(() => d.remove(), 650); };
+  d.addEventListener('pointerdown', end);
+  const im = d.querySelector('img'), arm = () => setTimeout(end, 2400);
+  if (im.complete) arm(); else { im.onload = arm; im.onerror = end; }
+  setTimeout(end, 5000);
+}
 
 /* ------------------------- INSTALLATION, HORS LIGNE ------------------------ */
 // BUILD_ID est remplacé à chaque publication ; 'dev' sur l'artefact et en local.
-const BUILD_ID = '5a160e34df';
+const BUILD_ID = 'f0c2e77eeb';
 // Installable par le menu du navigateur, sans invite ni bouton : l'appli à installer, c'est le hub Keismey Studio.
 addEventListener('beforeinstallprompt', e => e.preventDefault());
 try {
