@@ -3022,7 +3022,7 @@ function onBack() {
   backConfirm(night ? T('Retour à l’écran titre ? La soirée en cours sera perdue.', 'Back to the title screen? Tonight’s shift will be lost.')
                     : T('Retour à l’écran titre ?', 'Back to the title screen?'), screenTitle);
 }
-if (window.KSBack) KSBack.init({ back: onBack, lang: () => (EN ? 'en' : 'fr') });
+if (window.KSBack) KSBack.init({ back: onBack, lang: () => (EN ? 'en' : 'fr'), title: () => (!G.cur || G.cur === 'titre') && !$$('.ov').length && !$('.coach') });
 
 /* ------------------------------ DÉMARRAGE ----------------------------- */
 window.PCS = { startPatron, patronFile, fraisDuSoir, STORY, STORY_END, knownRules, chapterBefore, makeVeteran, recordVeteran, availableDrinks, nightPlan, chooseConsigne, chooseBonus, canRachat, buyUpgrade, sayLine, serieTip, startService, UPGRADES, P, DRINKS, QUESTS, makeRng, newMeta, newNight, genQueue, decide, serve, assign, registerAction, closeIncidents, computeBilan, chance, eligible, stat, teamOf, questOf, visibleFaults, mercsInSalle, canServe, G };
@@ -3045,7 +3045,7 @@ function studioSplash() {
 
 /* ------------------------- INSTALLATION, HORS LIGNE ------------------------ */
 // BUILD_ID est remplacé à chaque publication ; 'dev' sur l'artefact et en local.
-const BUILD_ID = 'p936bbbba8';
+const BUILD_ID = 'p8be6cb661';
 // Installable par le menu du navigateur, sans invite ni bouton : l'appli à installer, c'est le hub Keismey Studio.
 addEventListener('beforeinstallprompt', e => e.preventDefault());
 try {
