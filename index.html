@@ -1789,8 +1789,8 @@ function showOptions() {
   o.innerHTML = `<div class="box parch fade-in opts"><div class="nm" style="margin-bottom:6px">Options</div>
     ${vol('o-mus', T('Musique', 'Music'), VOL.m)}${vol('o-sfx', T('Bruitages', 'Sound effects'), VOL.s)}${row('o-vib', T('Vibrations', 'Vibration'), OPTS.vib)}
     ${titre ? `<div class="row"><span>${T('Langue', 'Language')}</span><button class="btn" id="o-lang" style="padding:6px 12px">${EN ? 'Français' : 'English'}</button></div>` : ''}
-    ${b('o-pn', T('Notes de mise à jour', 'Patch notes'))}${b('o-save', T('Sauvegarde (exporter / importer)', 'Save (export / import)'))}
-    ${b('o-bug', T('Signaler un bug', 'Report a bug'))}${b('o-sup', T('Soutenir le studio', 'Support the studio'))}
+    ${b('o-save', T('Sauvegarde (exporter / importer)', 'Save (export / import)'))}${b('o-pn', T('Notes de mise à jour', 'Patch notes'))}
+    ${b('o-bug', T('Signaler un bug', 'Report a bug'))}${b('o-sup', T('Soutenir le studio', 'Support the studio'))}${b('o-hub', T('Retour au hub', 'Back to the hub'))}
     <div style="display:flex;gap:10px;margin-top:16px">${titre ? '' : `<button class="btn" id="o-titre" style="flex:1">${T('Écran titre', 'Title screen')}</button>`}<button class="btn primary" id="o-ok" style="flex:1">${titre ? T('Fermer', 'Close') : T('Reprendre', 'Resume')}</button></div>
     <div class="over">v${PN[0].v} · Keismey Studio</div></div>`;
   app.appendChild(o); G.ui.paused = true;
@@ -1806,6 +1806,7 @@ function showOptions() {
   $('#o-save', o).onclick = () => { if (window.KS) KS.saveDialog({ keys: [SAVE_KEY], lang: EN ? 'en' : 'fr', accent: '#c8a45a' }); };
   $('#o-bug', o).onclick = () => { if (window.KS) KS.bug('Pas ce soir', EN ? 'en' : 'fr'); };
   $('#o-sup', o).onclick = () => { if (window.KS) KS.support(); };
+  $('#o-hub', o).onclick = () => { save(); if (window.KSBack) KSBack.toHub(); };
   $('#o-ok', o).onclick = close;
   const ti = $('#o-titre', o); if (ti) ti.onclick = () => { close(); $$('.ov,.coach').forEach(x => x.remove()); screenTitle(); };
 }
@@ -2060,6 +2061,9 @@ function confirmBox(text, yes, fn) {
 }
 /* ---------- Notes de mise à jour (la plus récente en premier) ---------- */
 const PN = [
+  { v: '1.0.5', d: ['29 octobre 2026', '29 October 2026'],
+    fr: ['Options : bouton « Retour au hub », et le même ordre que dans les autres jeux du studio.'],
+    en: ['Options: a “Back to the hub” button, in the same order as the studio’s other games.'] },
   { v: '1.0.4', d: ['26 octobre 2026', '26 October 2026'],
     fr: ['Logo Keismey Studio au lancement, comme dans les autres jeux du studio.'],
     en: ['Keismey Studio logo at launch, like the studio’s other games.'] },
@@ -3045,7 +3049,7 @@ function studioSplash() {
 
 /* ------------------------- INSTALLATION, HORS LIGNE ------------------------ */
 // BUILD_ID est remplacé à chaque publication ; 'dev' sur l'artefact et en local.
-const BUILD_ID = 'p8be6cb661';
+const BUILD_ID = 'p4176d9619';
 // Installable par le menu du navigateur, sans invite ni bouton : l'appli à installer, c'est le hub Keismey Studio.
 addEventListener('beforeinstallprompt', e => e.preventDefault());
 try {
