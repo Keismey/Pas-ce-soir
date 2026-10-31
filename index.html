@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#2B1B12">
 <title>Pas ce soir</title>
 <link rel="icon" type="image/png" href="icons/favicon.png">
@@ -43,7 +43,8 @@
   --planches:repeating-linear-gradient(180deg, rgba(0,0,0,0) 0 37px, rgba(0,0,0,.28) 37px 39px, rgba(255,210,150,.035) 39px 40px);
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html,body{margin:0;height:100%;background:#0b0705;overflow:hidden;font-family:var(--body);color:var(--txt);touch-action:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
+/* Zoom à deux doigts permis (lecture sur petit écran) ; pas de défilement ni de zoom au double toucher. Repli sur none si pinch-zoom inconnu. */
+html,body{margin:0;height:100%;background:#0b0705;overflow:hidden;font-family:var(--body);color:var(--txt);touch-action:none;touch-action:pinch-zoom;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
 #app{position:fixed;left:50%;top:50%;width:390px;height:844px;margin:-422px 0 0 -195px;overflow:hidden;transform-origin:center center;
   background:var(--grain), var(--planches), linear-gradient(180deg,#2e1d12 0%,#1d120b 100%)}
 /* Écran large ou PC : le décor de l'écran en cours, flou et assombri, remplit les côtés */
@@ -1654,6 +1655,8 @@ const G = { meta: null, n: null, rng: null, scale: 1, ui: {}, timers: [] };
 const SAVE_KEY = 'pas-ce-soir-v1';
 
 function fit() {
+  // zoom à deux doigts en cours : Safari change alors innerWidth, on garde l'échelle du jeu
+  if (window.visualViewport && visualViewport.scale > 1.01) return;
   const s = Math.min(innerWidth / 390, innerHeight / 844);
   G.scale = s;
   app.style.transform = `scale(${s})`;
@@ -3049,7 +3052,7 @@ function studioSplash() {
 
 /* ------------------------- INSTALLATION, HORS LIGNE ------------------------ */
 // BUILD_ID est remplacé à chaque publication ; 'dev' sur l'artefact et en local.
-const BUILD_ID = 'p18fb7d9fb';
+const BUILD_ID = 'paad7c2d89';
 // Installable par le menu du navigateur, sans invite ni bouton : l'appli à installer, c'est le hub Keismey Studio.
 addEventListener('beforeinstallprompt', e => e.preventDefault());
 try {
