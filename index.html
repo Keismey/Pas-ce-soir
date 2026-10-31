@@ -32,6 +32,8 @@
    parchemin à l'encre brune pour ce qu'on lit, cire rouge pour les interdits. */
 :root{
   color-scheme:dark;
+  /* encoche, barre d'accueil : lues par fit() pour garder le jeu dans la zone sûre */
+  --sa-t:env(safe-area-inset-top,0px); --sa-r:env(safe-area-inset-right,0px); --sa-b:env(safe-area-inset-bottom,0px); --sa-l:env(safe-area-inset-left,0px);
   --nuit:#140b07; --bois:#2B1B12; --bois2:#3b2719; --bois3:#4a3220;
   --laiton:#E0A040; --laiton2:#b97d2a; --laiton3:#7a5420;
   --parchemin:#F2E3C2; --parchemin2:#e3cc9c; --encre:#3a2314; --encre2:#6e5136;
@@ -1654,9 +1656,12 @@ const G = { meta: null, n: null, rng: null, scale: 1, ui: {}, timers: [] };
 const SAVE_KEY = 'pas-ce-soir-v1';
 
 function fit() {
-  const s = Math.min(innerWidth / 390, innerHeight / 844);
+  // zone sûre (encoche, barre d'accueil de l'iPhone) : le jeu se réduit et se décale pour ne pas passer dessous
+  const cs = getComputedStyle(document.documentElement), inset = k => parseFloat(cs.getPropertyValue(k)) || 0;
+  const t = inset('--sa-t'), r = inset('--sa-r'), b = inset('--sa-b'), l = inset('--sa-l');
+  const s = Math.min((innerWidth - l - r) / 390, (innerHeight - t - b) / 844);
   G.scale = s;
-  app.style.transform = `scale(${s})`;
+  app.style.transform = `translate(${(l - r) / 2}px, ${(t - b) / 2}px) scale(${s})`;
   // la suite du décor sur les côtés : même hauteur que le jeu, largeur d'origine des décors (768 × 1376)
   document.documentElement.style.setProperty('--apph', (844 * s) + 'px');
   document.documentElement.style.setProperty('--iw', (844 * s * 768 / 1376) + 'px');
@@ -3049,7 +3054,7 @@ function studioSplash() {
 
 /* ------------------------- INSTALLATION, HORS LIGNE ------------------------ */
 // BUILD_ID est remplacé à chaque publication ; 'dev' sur l'artefact et en local.
-const BUILD_ID = 'p18fb7d9fb';
+const BUILD_ID = 'p45f3b3538';
 // Installable par le menu du navigateur, sans invite ni bouton : l'appli à installer, c'est le hub Keismey Studio.
 addEventListener('beforeinstallprompt', e => e.preventDefault());
 try {
