@@ -1657,6 +1657,8 @@ const G = { meta: null, n: null, rng: null, scale: 1, ui: {}, timers: [] };
 const SAVE_KEY = 'pas-ce-soir-v1';
 
 function fit() {
+  // zoom à deux doigts en cours : Safari change alors innerWidth, on garde l'échelle du jeu
+  if (window.visualViewport && visualViewport.scale > 1.01) return;
   // zone sûre (encoche, barre d'accueil de l'iPhone) : le jeu se réduit et se décale pour ne pas passer dessous
   const cs = getComputedStyle(document.documentElement), inset = k => parseFloat(cs.getPropertyValue(k)) || 0;
   const t = inset('--sa-t'), r = inset('--sa-r'), b = inset('--sa-b'), l = inset('--sa-l');
