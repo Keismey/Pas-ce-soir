@@ -1657,6 +1657,8 @@ const G = { meta: null, n: null, rng: null, scale: 1, ui: {}, timers: [] };
 const SAVE_KEY = 'pas-ce-soir-v1';
 
 function fit() {
+  // zoom à deux doigts en cours : Safari change alors innerWidth, on garde l'échelle du jeu
+  if (window.visualViewport && visualViewport.scale > 1.01) return;
   // zone sûre (encoche, barre d'accueil de l'iPhone) : le jeu se réduit et se décale pour ne pas passer dessous
   const cs = getComputedStyle(document.documentElement), inset = k => parseFloat(cs.getPropertyValue(k)) || 0;
   const t = inset('--sa-t'), r = inset('--sa-r'), b = inset('--sa-b'), l = inset('--sa-l');
@@ -2275,7 +2277,8 @@ function screenPorte() {
   const tutoArme = () => { if (c.traits.includes('arme') && n.consignes.includes('C1')) showTuto('arme'); };
   if (n.idx === 0) showTuto('porte', tutoArme); else tutoArme();
   G.tick = setInterval(() => {
-    if (G.ui.paused) return;
+    // jeu en arrière-plan (autre appli, onglet caché, écran verrouillé) : la file attend aussi
+    if (G.ui.paused || document.hidden) return;
     G.ui.cardT += 0.1;
     if (G.ui.cardT > P.patience.grace) {
       n.patience -= P.patience.drain * 0.1 * (n.fete ? P.patience.feteMult : 1);
@@ -3055,7 +3058,7 @@ function studioSplash() {
 
 /* ------------------------- INSTALLATION, HORS LIGNE ------------------------ */
 // BUILD_ID est remplacé à chaque publication ; 'dev' sur l'artefact et en local.
-const BUILD_ID = 'paf26f4064';
+const BUILD_ID = 'pba57b5329';
 // Installable par le menu du navigateur, sans invite ni bouton : l'appli à installer, c'est le hub Keismey Studio.
 addEventListener('beforeinstallprompt', e => e.preventDefault());
 try {
