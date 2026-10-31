@@ -1,5 +1,5 @@
 // Service worker : Pas ce soir jouable hors ligne (musique comprise).
-const V = 'pcs-p71e840073';
+const V = 'pcs-pba57b5329';
 const CORE = ["./", "index.html", "ks-studio.js", "ks-back.js", "manifest.webmanifest", "icons/icon-192.png", "icons/icon-512.png", "icons/apple-touch-icon.png", "icons/favicon.png", "img/studio/keismey-studio.webp", "fonts/fonts.css", "fonts/alegreya-400-italic.woff", "fonts/alegreya-400.woff", "fonts/alegreya-700.woff", "fonts/pirata-one-400.woff"];
 const ASSETS = ["img/amelio_arriere.webp", "img/amelio_bancs.webp", "img/amelio_barre.webp", "img/amelio_cheminee.webp", "img/amelio_mezzanine.webp", "img/amelio_tentures.webp", "img/amelio_tonneaux.webp", "img/amelio_trophees.webp", "img/badge_arme.webp", "img/badge_bete.webp", "img/badge_blesse.webp", "img/badge_boue.webp", "img/badge_bourse_vide.webp", "img/badge_capuche.webp", "img/badge_garde.webp", "img/badge_ivre.webp", "img/badge_magie.webp", "img/badge_mercenaire.webp", "img/badge_recherche.webp", "img/badge_retour.webp", "img/badge_sceau.webp", "img/badge_veteran.webp", "img/barde_a.webp", "img/barde_b.webp", "img/barde_c.webp", "img/barde_d.webp", "img/bg_atelier.webp", "img/bg_briefing.webp", "img/bg_porte.webp", "img/bg_renvoye.webp", "img/bg_salle_0.webp", "img/bg_salle_1.webp", "img/bg_salle_2.webp", "img/bg_salle_3.webp", "img/bg_titre.webp", "img/boisson_biere.webp", "img/boisson_cidre.webp", "img/boisson_elixir.webp", "img/boisson_hydromel.webp", "img/boisson_lait.webp", "img/boisson_rhum.webp", "img/boisson_sauge.webp", "img/boisson_vin.webp", "img/borin_heros.webp", "img/borin_ivre.webp", "img/bourgmestre.webp", "img/fin_1.webp", "img/fin_2.webp", "img/fin_3.webp", "img/garde_a.webp", "img/garde_b.webp", "img/garde_c.webp", "img/guerrier_a.webp", "img/guerrier_b.webp", "img/guerrier_c.webp", "img/gustave.webp", "img/ico_cle.webp", "img/ico_fouille.webp", "img/incident_bagarre.webp", "img/incident_vol.webp", "img/isolde.webp", "img/jauge_caisse.webp", "img/jauge_places.webp", "img/jauge_reputation.webp", "img/mage_a.webp", "img/mage_b.webp", "img/mage_c.webp", "img/mage_d.webp", "img/mercenaire_a.webp", "img/mercenaire_b.webp", "img/mercenaire_c.webp", "img/mercenaire_d.webp", "img/mercenaire_e.webp", "img/noble_a.webp", "img/noble_b.webp", "img/noble_c.webp", "img/pip.webp", "img/stat_agilite.webp", "img/stat_endurance.webp", "img/stat_esprit.webp", "img/stat_force.webp", "img/voleur_a.webp", "img/voleur_b.webp", "img/voleur_c.webp", "img/voleur_d.webp", "img/cover.webp", "audio/mus_titre.ogg", "audio/mus_entre_a.ogg", "audio/mus_entre_b.ogg", "audio/mus_porte.ogg", "audio/mus_salle.ogg", "audio/mus_presse.ogg", "audio/mus_renvoye.ogg"];
 self.addEventListener('install', e => {
@@ -19,7 +19,12 @@ self.addEventListener('fetch', e => {
   if (u.hostname === 'static.cloudflareinsights.com') return; // suivi Cloudflare : toujours le réseau, jamais le cache
   // la page : réseau d'abord (mises à jour immédiates), cache si hors ligne
   if (r.mode === 'navigate') {
-    e.respondWith(fetch(r.url, { cache: 'no-cache', credentials: 'same-origin' }).then(res => { const cp = res.clone(); caches.open(V).then(c => c.put('index.html', cp)); return res; }).catch(() => caches.match('index.html')));
+    e.respondWith(fetch(r.url, { cache: 'no-cache', credentials: 'same-origin' }).then(res => {
+      // une page d'erreur (404, panne de GitHub Pages) ne remplace jamais la copie hors ligne ;
+      // en cas de panne du serveur, on joue avec cette copie
+      if (res.ok) { const cp = res.clone(); caches.open(V).then(c => c.put('index.html', cp)); return res; }
+      return res.status >= 500 ? caches.match('index.html').then(hit => hit || res) : res;
+    }).catch(() => caches.match('index.html')));
     return;
   }
   // le reste (images, sons, polices) : cache d'abord
